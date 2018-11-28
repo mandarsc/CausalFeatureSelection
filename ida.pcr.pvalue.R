@@ -65,12 +65,18 @@ ida.pcr.pvalue <- function(x.pos,y.pos,data,graphEst,method="local",
       ## estimate beta
       if (length(pa2)==0) {
         # beta.hat <- lm.cov(mcov,y.pos,c(x.pos,pa1))
-        pcr.model <- pcr(Rainfall~., data=data[,c(x.pos,pa1,y.pos)])
+        y_var <- colnames(data)[y.pos]
+        x_var <- colnames(data)[c(x.pos, pa1)]
+        formula <- as.formula(paste(y_var, paste(x_var, collapse='+'), sep='~'))
+        # pcr.model <- pcr(q_RIBFLV~., data=data[,c(x.pos,pa1,y.pos)])
+        pcr.model <- pcr(formula, data=data[,c(x.pos,pa1,y.pos)])
         max.var.comp <-  which.max(explvar(pcr.model))
         var.hat <- explvar(pcr.model)[max.var.comp]
         beta.hat <- data.frame(pcr.model$coefficients)[idx.name, max.var.comp]
         # Compute p-value of the causal effect
-        beta.hat <- computePValue(idx.name, beta.hat, data, c(x.pos, pa1), y.pos, 1)
+        beta_stat <- computePValue(idx.name, beta.hat, data, c(x.pos, pa1), y.pos, 1)
+        beta.hat <- beta_stat[1]
+        p.value <- beta_stat[2]
         if(is.na(beta.hat)) var.hat <- NA
 
         if (verbose) cat("Fit - y:",y.pos,"x:",c(x.pos,pa1),
@@ -78,6 +84,7 @@ ida.pcr.pvalue <- function(x.pos,y.pos,data,graphEst,method="local",
       } else {
         ## at least one undirected parent
         beta.hat <- NA
+        p.value <- NA
         var.hat <- NA
         ii <- 1
         
@@ -87,12 +94,19 @@ ida.pcr.pvalue <- function(x.pos,y.pos,data,graphEst,method="local",
         tmpColl <- check.new.coll(amat,amatSkel,x.pos,pa1,pa2.t,pa2.f)
         if (!tmpColl) {
           # beta.hat[ii] <- lm.cov(mcov,y.pos,c(x.pos,pa1))
-          pcr.model <- pcr(Rainfall~., data=data[,c(x.pos,pa1,y.pos)])
+          y_var <- colnames(data)[y.pos]
+          x_var <- colnames(data)[c(x.pos, pa1)]
+          formula <- as.formula(paste(y_var, paste(x_var, collapse='+'), sep='~'))
+          pcr.model <- pcr(formula, data=data[,c(x.pos,pa1,y.pos)])
+
+          # pcr.model <- pcr(q_RIBFLV~., data=data[,c(x.pos,pa1,y.pos)])
           max.var.comp <-  which.max(explvar(pcr.model))
           beta.hat[ii] <- data.frame(pcr.model$coefficients)[idx.name, max.var.comp]
           var.hat[ii] <- explvar(pcr.model)[max.var.comp]
           # Compute p-value of the causal effect
-          beta.hat[ii] <- computePValue(idx.name, beta.hat[ii], data, c(x.pos, pa1), y.pos, 1)
+          beta_stat <- computePValue(idx.name, beta.hat[ii], data, c(x.pos, pa1), y.pos, 1)
+          beta.hat[ii] <- beta_stat[1]
+          p.value[ii] <- beta_stat[2]
           if(is.na(beta.hat[ii])) var.hat[ii] <- NA
           if (verbose) cat("Fit1 - y:",y.pos,"x:",c(x.pos,pa1),
                            "|b.hat=",beta.hat[ii],"\n")
@@ -108,12 +122,20 @@ ida.pcr.pvalue <- function(x.pos,y.pos,data,graphEst,method="local",
               beta.hat[ii] <- 0
             } else {
               # beta.hat[ii] <- lm.cov(mcov,y.pos,c(x.pos,pa1,pa2[i2]))
-              pcr.model <- pcr(Rainfall~., data=data[,c(x.pos,pa1,pa2[i2],y.pos)])
+              y_var <- colnames(data)[y.pos]
+              x_var <- colnames(data)[c(x.pos, pa1, pa2[i2])]
+              formula <- as.formula(paste(y_var, paste(x_var, collapse='+'), sep='~'))
+              # pcr.model <- pcr(q_RIBFLV~., data=data[,c(x.pos,pa1,y.pos)])
+              pcr.model <- pcr(formula, data=data[,c(x.pos,pa1,pa2[i2],y.pos)])
+
+              # pcr.model <- pcr(q_RIBFLV~., data=data[,c(x.pos,pa1,pa2[i2],y.pos)])
               max.var.comp <-  which.max(explvar(pcr.model))
               beta.hat[ii] <- data.frame(pcr.model$coefficients)[idx.name, max.var.comp]
               var.hat[ii] <- explvar(pcr.model)[max.var.comp]
               # Compute p-value of the causal effect
-              beta.hat[ii] <- computePValue(idx.name, beta.hat[ii], data, c(x.pos,pa1,pa2[i2]), y.pos, 1)
+              beta_stat <- computePValue(idx.name, beta.hat[ii], data, c(x.pos,pa1,pa2[i2]), y.pos, 1)
+              beta.hat[ii] <- beta_stat[1]
+              p.value[ii] <- beta_stat[2]
               if(is.na(beta.hat[ii])) var.hat[ii] <- NA
               if (verbose) cat("Fit2 - y:",y.pos,"x:",c(x.pos,pa1,pa2[i2]),
                                "|b.hat=",beta.hat[ii],"\n")
@@ -136,12 +158,20 @@ ida.pcr.pvalue <- function(x.pos,y.pos,data,graphEst,method="local",
                   beta.hat[ii] <- 0
                 } else {
                   # beta.hat[ii] <- lm.cov(mcov,y.pos,c(x.pos,pa1,pa.tmp[,j]))
-                  pcr.model <- pcr(Rainfall~., data=data[,c(x.pos,pa1,pa.tmp[,j],y.pos)])
+                  y_var <- colnames(data)[y.pos]
+                  x_var <- colnames(data)[c(x.pos, pa1, pa.tmp[,j])]
+                  formula <- as.formula(paste(y_var, paste(x_var, collapse='+'), sep='~'))
+                  # pcr.model <- pcr(q_RIBFLV~., data=data[,c(x.pos,pa1,y.pos)])
+                  pcr.model <- pcr(formula, data=data[,c(x.pos,pa1,pa.tmp[,j],y.pos)])
+
+                  # pcr.model <- pcr(q_RIBFLV~., data=data[,c(x.pos,pa1,pa.tmp[,j],y.pos)])
                   max.var.comp <-  which.max(explvar(pcr.model))
                   beta.hat[ii] <- data.frame(pcr.model$coefficients)[idx.name, max.var.comp]
                   var.hat[ii] <- explvar(pcr.model)[max.var.comp]
                   # Compute p-value of the causal effect
-                  beta.hat[ii] <- computePValue(idx.name, beta.hat[ii], data, c(x.pos,pa1,pa.tmp[,j]), y.pos, 1)
+                  beta_stat <- computePValue(idx.name, beta.hat[ii], data, c(x.pos,pa1,pa.tmp[,j]), y.pos, 1)
+                  beta.hat[ii] <- beta_stat[1]
+                  p.value[ii] <- beta_stat[2]
                   if(is.na(beta.hat[ii])) var.hat[ii] <- NA
                   if (verbose) {
                     cat("Fit3 - y:",y.pos,"x:",c(x.pos,pa1,pa.tmp[,j]),
@@ -200,7 +230,7 @@ ida.pcr.pvalue <- function(x.pos,y.pos,data,graphEst,method="local",
         beta.hat[i] <- 0
       } else {
         # beta.hat[i] <- lm.cov(mcov,y.pos,c(x.pos,pa1))
-        pcr.model <- pcr(Rainfall~., data=data[,c(x.pos,pa1,y.pos)])
+        pcr.model <- pcr(q_RIBFLV~., data=data[,c(x.pos,pa1,y.pos)])
         max.var.comp <-  which.max(explvar(pcr.model))
         beta.hat[ii] <- data.frame(pcr.model$coefficients)[idx.name, max.var.comp]
         # Compute p-value of the causal effect
@@ -214,9 +244,9 @@ ida.pcr.pvalue <- function(x.pos,y.pos,data,graphEst,method="local",
   } ## if (method = "local")
   # print(beta.hat)
   if(length(beta.hat)==1 && is.na(beta.hat))
-    beta.hat
+    list(beta.hat, p.value)
   else{
     # idx <- which.max(var.hat)
-    beta.hat
+    list(beta.hat, p.value)
   }
 }
