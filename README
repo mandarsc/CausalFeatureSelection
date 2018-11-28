@@ -1,0 +1,11 @@
+The cfs.R file contains the driver code to run the feature selection method.
+functions.R and ida.pcr.pvalue.R contain utility functions for the feature selection.
+
+Input:
+	1. Make sure you divide your data into train set and test set before running cfs.R. This file takes as input the train set (csv), the causal graph (xml) built using the train set, and the test set (csv). In this project, I used Tetrad software to construct causal graph but you can use the pcalg package in R to do so. Tetrad is a GUI-based software and you can download it from this website (http://www.phil.cmu.edu/tetrad/).
+		-> TrainData_CV_i.txt: contains train set input to cfs.R
+		-> TestData_CV_i.txt: contains test set.
+		-> ClimData_CV_i.txt (BioData_CV_i.txt): contains train set input to Tetrad software to build causal graphs.
+		-> Causal_Graphs_v10: contains causal graphs constructed from train set.
+		-> "Climate Raw Data Sahel.csv", "Climate Raw Data EA.csv" and "riboflavinv100.csv" contains raw data that is used to create train set and test set.
+	2. Update the file location in line 2 of cfs.R and select the dataset to run experiments by specifying the dataset in lines 9-24 in cfs.R
